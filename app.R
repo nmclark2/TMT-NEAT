@@ -10,7 +10,7 @@ ui <- fluidPage(
       fileInput("file", label = "Metadata file"),
       fileInput("file2", label = "MaxQuant output file"),
       textInput("text2", label = "Experiment name", value = ""),
-      radioButtons("radio", label = "PTM?", choices = c("No","Yes")),
+      radioButtons("radio", label = "PTM?", choices = c("None","P","U")),
       numericInput("num", label = "q-value cutoff", value = 0.1),
       actionButton("action", label = "Run")
     ),
@@ -42,7 +42,7 @@ ui <- fluidPage(
               p("Input what you called your experiment when loading into MaxQuant. If you cannot remember,
                 you can check the summary file."),
               strong("PTM"),
-              p("Select Yes if you are measuring a post-translational modification such as phosphorylation or acetylation."),
+              p("Select P for phosphorylation, U for ubiquitination experiments."),
               strong("q-value cutoff for differential expression"),
               p("Indicate the q-value cutoff you would like to use for differential expression analysis. We recommend
                 starting with a q-value of 0.1 and then adjusting as you see fit. Q-value histograms are included in the
