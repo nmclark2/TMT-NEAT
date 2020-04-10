@@ -51,7 +51,7 @@ nums = metadata$rep
 numrefs = sum(grepl("Ref",metadata$name,ignore.case=TRUE))/reps
 
 message("Beginning data processing...")
-if (PTM == "Yes"){
+if (PTM == "P"){
   #get rid of peptides with no phospho sites
   data = data[!(data$Number.of.Phospho..STY.==""),]
   #get the raw intensities for differential abundance
@@ -61,7 +61,8 @@ if (PTM == "Yes"){
   #rawintensities = intensities[grepl('corrected',colnames(intensities))]
   intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
   #remove blanks
-  intensitiesK = intensitiesK[,!grepl('blank',metadataorg$name,ignore.case=TRUE)]
+  metadata3 = rep(metadataorg$name,each=3)
+  intensitiesK = intensitiesK[,!grepl('blank',metadata3,ignore.case=TRUE)]
   #splitnames = strsplit(colnames(intensitiesK),'NLB')
   #splitnames = unlist(splitnames)
   #splitnames2 = strsplit(splitnames[seq(2,924,by=2)],"___")
@@ -137,6 +138,93 @@ if (PTM == "Yes"){
       }
     }
   }
+}else if(PTM=="U"){
+  #get rid of peptides with no phospho sites
+  data = data[!(data$Number.of.GlyGly..K.==""),]
+  #get the raw intensities for differential abundance
+  intensities = data[,grepl('Reporter.intensity',colnames(data))]
+  rawintensities = intensities[!grepl('corrected',colnames(intensities))]
+  rawintensities = rawintensities[!grepl('count',colnames(rawintensities))]
+  #rawintensities = intensities[grepl('corrected',colnames(intensities))]
+  intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
+  #remove blanks
+  metadata3 = rep(metadataorg$name,each=3)
+  intensitiesK = intensitiesK[,!grepl('blank',metadata3,ignore.case=TRUE)]
+  #splitnames = strsplit(colnames(intensitiesK),'NLB')
+  #splitnames = unlist(splitnames)
+  #splitnames2 = strsplit(splitnames[seq(2,924,by=2)],"___")
+  #splitnames2 = unlist(splitnames2)
+  #intensitiesK = intensitiesK[,order(strtoi(splitnames2[seq(1,923,by=2)]))]
+  
+  message("Separating multiplicities...")
+  #first we need to make a new table where we 1) take only the columns we need and 2) separate peptides by multiplicity
+  #this assumes columns are always named the same thing
+  currentrow=1
+  for (i in 1:length(row.names(data))){
+    myprotein = data[i,]
+    #check number of phospho sites
+    #if there is a semicolon, that means we have multiple sites and need to split into multiple rows
+    if (length(grep(";",myprotein$Number.of.GlyGly..K.))>0){
+      #get the info for this protein
+      mydata = data.frame(myprotein$Proteins,myprotein$Positions.within.proteins,myprotein$Protein,myprotein$Fasta.headers,
+                          myprotein$Localization.prob,myprotein$Number.of.GlyGly..K.,
+                          myprotein$Sequence.window, myprotein$Modification.window, myprotein$Peptide.window.coverage,
+                          myprotein$GlyGly..K..Probabilities, row.names(myprotein), stringsAsFactors=FALSE)
+      colnames(mydata)=c("Proteins","Positions.within.proteins","Protein","Fasta.headers",
+                         "Localization.prob",
+                         "GlyGly.Site","Sequence.window",'Modification.window',
+                         'Peptide.window.coverage','GlyGly.site.probs','original.id')
+      #split the phospho sites by semincolon
+      sites = strsplit(myprotein$Number.of.GlyGly..K.,";")
+      mysites = sites[[1]]
+      for (j in 1:length(mysites)){
+        #if the site # is >3, we need to make it 3
+        if (mysites[j]>3){
+          currentsite = 3
+        } else{
+          currentsite=mysites[j]
+        }
+        myintensities = intensitiesK[i,grepl(paste('_',currentsite,sep=""),colnames(intensitiesK))]
+        colnames(myintensities)=paste(rep("R",length(nums)),nums,sep="_")
+        if (i==1){
+          newdata = data.frame(mydata,myintensities,stringsAsFactors=FALSE)
+          row.names(newdata)[currentrow]=paste(row.names(newdata)[currentrow],".",mysites[j],sep="")
+          currentrow = currentrow+1
+        } else{
+          newdata[currentrow,] =  data.frame(mydata,myintensities)
+          row.names(newdata)[currentrow]=paste(row.names(newdata)[currentrow],".",mysites[j],sep="")
+          currentrow = currentrow+1
+        }
+      }
+    }else{
+      #get the info for this protein
+      mydata = data.frame(myprotein$Proteins,myprotein$Positions.within.proteins,myprotein$Protein,myprotein$Fasta.headers,
+                          myprotein$Localization.prob,myprotein$Number.of.GlyGly..K.,
+                          myprotein$Sequence.window, myprotein$Modification.window, myprotein$Peptide.window.coverage,
+                          myprotein$GlyGly..K..Probabilities, row.names(myprotein), stringsAsFactors=FALSE)
+      colnames(mydata)=c("Proteins","Positions.within.proteins","Protein","Fasta.headers",
+                         "Localization.prob",
+                         "GlyGly.Site","Sequence.window",'Modification.window',
+                         'Peptide.window.coverage','GlyGly.site.probs','original.id')
+      #get the correct intensity values for this protein
+      if (myprotein$Number.of.GlyGly..K.>3){
+        currentsite = 3
+      } else{
+        currentsite=myprotein$Number.of.GlyGly..K.
+      }
+      myintensities = intensitiesK[i,grepl(paste('_',currentsite,sep=""),colnames(intensitiesK))]
+      colnames(myintensities)=paste(rep("R",length(nums)),nums,sep="_")
+      if (i==1){
+        newdata = data.frame(mydata,myintensities,stringsAsFactors=FALSE)
+        row.names(newdata)[currentrow]=paste(row.names(newdata)[currentrow],".",myprotein$Number.of.GlyGly..K.,sep="")
+        currentrow = currentrow+1
+      } else{
+        newdata[currentrow,] =  data.frame(mydata,myintensities)
+        row.names(newdata)[currentrow]=paste(row.names(newdata)[currentrow],".",myprotein$Number.of.GlyGly..K.,sep="")
+        currentrow = currentrow+1
+      }
+    }
+  }
 }else{
   #get the raw intensities for differential abundance
   intensities = data[,grepl('Reporter.intensity',colnames(data))]
@@ -200,13 +288,8 @@ if (numrefs>1){
     #remove the proteins that are zero in >=50% of the runs
     nozeros = newdata[zerosums<=(dim(refsums)[2]/2),]
 } else{
-  zerosums = rowSums(refs[,]==0)
   #remove the proteins that are zero in all samples
-  if (dim(refs)[2]>1){
-    nozeros = newdata[zerosums<=(dim(refs)[2]/2),]
-  }else{
     nozeros = newdata[refs>0,]
-  }
 }
 #save
 write.csv(nozeros,'prenormalized_data_in_at_least_half_of_runs.csv')
@@ -470,6 +553,7 @@ for (i in 1:(length(mysamples)-1)){
     currentrow = currentrow+1
   }
 }
+#comps = c('DMSO_vs_IAA','DMSO_vs_bortezomib')
 
 #perform PoissonSeq
 message("Differential expression analysis...")
@@ -492,6 +576,7 @@ for (i in 1:length(comps)){
   pseq<- PS.Main(dat=list(n=pdata,y=y,type="twoclass",pair=FALSE,gname=row.names(pdata)),para=list(ct.sum=0,ct.mean=0))
   #get the actual fc
   pseq = pseq[order(pseq$gname),]
+  pdata = pdata[order(row.names(pdata)),]
   myFC = data.frame(rowMeans(pdata[,y==2])/rowMeans(pdata[,y==1]),row.names=row.names(pdata))
   pseq[,7]=log2(myFC)
   colnames(pseq)[7]="log2FC"
@@ -499,8 +584,14 @@ for (i in 1:length(comps)){
   nozeros = nozeros[order(row.names(nozeros)),]
   myresults = data.frame(pseq[,c(1:5,7)],nozeros[row.names(nozeros)%in%pseq$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%pseq$gname,])
   #save
-  addWorksheet(wb = newwb2, sheetName = comps[i], gridLines = TRUE)
-  writeDataTable(wb=newwb2, sheet=comps[i],x=myresults,tableStyle="none",
+  mycomp = comps[i]
+  if (nchar(mycomp)>31){
+    mysheet = abbreviate(mycomp,minlength=31)
+  }else{
+    mysheet=comps[i]
+  }
+  addWorksheet(wb = newwb2, sheetName = mysheet, gridLines = TRUE)
+  writeDataTable(wb=newwb2, sheet=mysheet,x=myresults,tableStyle="none",
                  rowNames=TRUE,withFilter=FALSE,
                  bandedRows=FALSE,bandedCols=FALSE)
   #make volcano plot
@@ -522,12 +613,6 @@ for (i in 1:length(comps)){
   mypros = mypros[order(mypros$gname),]
   myresults = data.frame(mypros,nozeros[row.names(nozeros)%in%mypros$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%mypros$gname,])
   #save
-  mycomp = comps[i]
-  if (nchar(mycomp)>31){
-    mysheet = mycomp[1:31]
-  }else{
-    mysheet=comps[i]
-  }
   addWorksheet(wb = newwb, sheetName = mysheet, gridLines = TRUE)
   writeDataTable(wb=newwb, sheet=mysheet,x=myresults,tableStyle="none",
                  rowNames=TRUE,withFilter=FALSE,
