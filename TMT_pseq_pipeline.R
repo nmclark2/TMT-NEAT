@@ -3,13 +3,30 @@
 TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, PTM, qval){
 
 #check that all packages are installed, and load them
-  for (package in c('openxlsx', 'plyr','dplyr','ggbiplot','PoissonSeq','EnhancedVolcano')) {
+  for (package in c('openxlsx', 'plyr','dplyr','PoissonSeq')) {
     if (!require(package, character.only=T, quietly=T)) {
       install.packages(package)
       library(package, character.only=T)
     }else{
       library(package,character.only=T)
     }
+  }
+  
+  if (!require('ggbiplot',quietly=T)) {
+    install.packages('devtools')
+    library(devtools)
+    install_github("vqv/ggbiplot")
+    library('ggbiplot')
+  }else{
+    library('ggbiplot')
+  }
+  
+  if (!require('EnhancedVolcano',quietly=T)) {
+    install.packages("BiocManager")
+    BiocManager::install("EnhancedVolcano")
+    library('EnhancedVolcano')
+  }else{
+    library('EnhancedVolcano')
   }
   
 #make sure the exp name is syntatically valid
@@ -24,8 +41,11 @@ data = read.csv(datafile,row.names="id",stringsAsFactors=FALSE)
 colnames(data)[1]="Proteins"
 
 #read in the metadata
-metadata = read.table(metadatafile,sep="\t",header=TRUE,stringsAsFactors=FALSE)
-plex = max(metadata$sample)
+metadataorg = read.table(metadatafile,sep="\t",header=TRUE,stringsAsFactors=FALSE)
+#remove blanks
+noblanks = metadataorg[!grepl('blank',metadataorg$name,ignore.case=TRUE),]
+metadata=noblanks
+plex = length(metadata$sample[metadata$run==1])
 reps = max(metadata$run)
 nums = metadata$rep
 numrefs = sum(grepl("Ref",metadata$name,ignore.case=TRUE))/reps
@@ -40,6 +60,8 @@ if (PTM == "Yes"){
   rawintensities = rawintensities[!grepl('count',colnames(rawintensities))]
   #rawintensities = intensities[grepl('corrected',colnames(intensities))]
   intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
+  #remove blanks
+  intensitiesK = intensitiesK[,!grepl('blank',metadataorg$name,ignore.case=TRUE)]
   #splitnames = strsplit(colnames(intensitiesK),'NLB')
   #splitnames = unlist(splitnames)
   #splitnames2 = strsplit(splitnames[seq(2,924,by=2)],"___")
@@ -121,6 +143,8 @@ if (PTM == "Yes"){
   rawintensities = intensities[!grepl('corrected',colnames(intensities))]
   rawintensities = rawintensities[!grepl('count',colnames(rawintensities))]
   intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
+  #remove blanks
+  intensitiesK = intensitiesK[,!grepl('blank',metadataorg$name,ignore.case=TRUE)]
   #intensitiesK = intensitiesK[,metadata$sample]
   #splitnames = strsplit(colnames(intensitiesK),'NLB')
   #splitnames = unlist(splitnames)
@@ -176,9 +200,10 @@ if (numrefs>1){
     #remove the proteins that are zero in >=50% of the runs
     nozeros = newdata[zerosums<=(dim(refsums)[2]/2),]
 } else{
+  zerosums = rowSums(refs[,]==0)
   #remove the proteins that are zero in all samples
-  if (numrefs>1){
-    nozeros = newdata[zerosums<=(dim(refsums)[2]/2),]
+  if (dim(refs)[2]>1){
+    nozeros = newdata[zerosums<=(dim(refs)[2]/2),]
   }else{
     nozeros = newdata[refs>0,]
   }
@@ -186,6 +211,14 @@ if (numrefs>1){
 #save
 write.csv(nozeros,'prenormalized_data_in_at_least_half_of_runs.csv')
 finalintensities = nozeros[,(dim(mydata)[2]+1):dim(newdata)[2]]
+
+#plot boxplot before normalization
+#QC plots
+colors = c("blue","green","orange","yellow","red","purple","white","blue","green","orange","yellow","red","purple","white")
+png(filename='boxplot_log2.png',width=5000,height=2000,res=300)
+invisible(b <- boxplot(log2(finalintensities+1),col=colors[unlist(lapply(1:reps,function(x) rep(x,plex)))],ylab="log2(Intensity)",cex.axis=0.75,las=2))
+print(b)
+dev.off()
 
 message("Sample loading normalization...")
 #peform sample loading normalization (SLN)
@@ -386,7 +419,7 @@ if (reps>1){
 
 #QC plots
 colors = c("blue","green","orange","yellow","red","purple","white","blue","green","orange","yellow","red","purple","white")
-png(filename='boxplot_log2.png',width=5000,height=2000,res=300)
+png(filename='boxplot_log2_norm.png',width=5000,height=2000,res=300)
 invisible(b <- boxplot(log2(finalimpintensitiesIRS+1),col=colors[unlist(lapply(1:reps,function(x) rep(x,plex)))],ylab="log2(Intensity)",cex.axis=0.75,las=2))
 print(b)
 dev.off()
@@ -405,7 +438,7 @@ if (numrefs>0){
                 labels=colnames(finalimpintensitiesIRS)[grep("Ref",colnames(finalimpintensitiesIRS),invert=TRUE,ignore.case=TRUE)],
                 var.axes=FALSE,labels.size=3,ellipse=TRUE)
   if (length(unique(metadata$name))>2){
-    g <- g+scale_color_brewer(palette="Paired")
+    g <- g+scale_color_brewer(palette="Set1")
   }
   g<- g+ theme(text = element_text(size=14))
   png(filename='PCA.png',width=5000,height=2000,res=300)
@@ -417,9 +450,9 @@ if (numrefs>0){
   g <- ggbiplot(pcaresults, groups = metadata$name,
                 labels=colnames(finalimpintensitiesIRS),
                 var.axes=FALSE,labels.size=3,ellipse=TRUE)
-  if (length(unique(metadata$name))>2){
-    g <- g+scale_color_brewer(palette="Paired")
-  }
+ # if (length(unique(metadata$name))>2){
+#    g <- g+scale_color_brewer(palette="Paired")
+#  }
   g<- g+ theme(text = element_text(size=14))
   png(filename='PCA.png',width=4000,height=2000,res=300)
   print(g)
@@ -448,37 +481,39 @@ for (i in 1:length(comps)){
   sepcomps = strsplit(comps[i],"_vs_")
   intensities1 = pseqdata[,grepl(sepcomps[[1]][1],colnames(pseqdata))]
   intensities2 = pseqdata[,grepl(sepcomps[[1]][2],colnames(pseqdata))]
-  intensities1 = na.omit(intensities1)
-  intensities2 = na.omit(intensities2)
+  #intensities1 = na.omit(intensities1)
+  #intensities2 = na.omit(intensities2)
   #make indicator variable y
   y= c(rep(1,dim(intensities1)[2]),rep(2,dim(intensities2)[2]))
   #perform PSeq
   pdata = data.frame(intensities1,intensities2)
   pdata = na.omit(pdata)
+  pdata = pdata[rowMeans(pdata)>0,]
   pseq<- PS.Main(dat=list(n=pdata,y=y,type="twoclass",pair=FALSE,gname=row.names(pdata)),para=list(ct.sum=0,ct.mean=0))
   #get the actual fc
   pseq = pseq[order(pseq$gname),]
-  intensities1 = intensities1[order(row.names(intensities1)),]
-  intensities2 = intensities2[order(row.names(intensities2)),]
-  myFC = data.frame(rowMeans(intensities2[,])/rowMeans(intensities1[,]),row.names=row.names(intensities1))
+  myFC = data.frame(rowMeans(pdata[,y==2])/rowMeans(pdata[,y==1]),row.names=row.names(pdata))
   pseq[,7]=log2(myFC)
   colnames(pseq)[7]="log2FC"
   pseqdata = pseqdata[order(row.names(pseqdata)),]
   nozeros = nozeros[order(row.names(nozeros)),]
-  myresults = data.frame(pseq[,c(1:5,7)],nozeros[row.names(nozeros)%in%pseq$gname,1:11],pseqdata[row.names(pseqdata)%in%pseq$gname,])
+  myresults = data.frame(pseq[,c(1:5,7)],nozeros[row.names(nozeros)%in%pseq$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%pseq$gname,])
   #save
   addWorksheet(wb = newwb2, sheetName = comps[i], gridLines = TRUE)
   writeDataTable(wb=newwb2, sheet=comps[i],x=myresults,tableStyle="none",
                  rowNames=TRUE,withFilter=FALSE,
                  bandedRows=FALSE,bandedCols=FALSE)
   #make volcano plot
-  png(filename=paste(paste(comps[i],"_volcano_plot_",qval,".png",sep="")),width=2000,height=2000,res=300)
-  e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=1,pCutoff=qval,
-                       title=paste(comps[i],"(",sum(pseq$fdr<qval),")",sep=""))
+  png(filename=paste(paste(comps[i],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
+  e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+                       title=paste(comps[i],"(",sum(pseq$fdr<qval),")",sep=""),
+                       col=c('grey30','grey60','royalblue','red2'),
+                       legendLabels=c('FC<1.1, q>0.1 (NS)','FC>1.1, q>0.1 (NS)','FC<1.1, q<0.1 (S)','FC>1.1, q<0.1 (S)'),
+                       legendLabSize=10, ylab = bquote(~-Log[10]~italic(q)))
   plot(e)
   dev.off() #way more genes! zero imputation works!
   #make qvalue histogram
-  png(filename=paste(paste(comps[i],"_qval_hist.png",sep="")),width=2000,height=2000,res=300)
+  png(filename=paste(paste(comps[i],"_fdr_hist.png",sep="")),width=2000,height=2000,res=300)
   h <- hist(pseq$fdr,breaks=100)
   plot(h)
   dev.off()
@@ -487,8 +522,14 @@ for (i in 1:length(comps)){
   mypros = mypros[order(mypros$gname),]
   myresults = data.frame(mypros,nozeros[row.names(nozeros)%in%mypros$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%mypros$gname,])
   #save
-  addWorksheet(wb = newwb, sheetName = comps[i], gridLines = TRUE)
-  writeDataTable(wb=newwb, sheet=comps[i],x=myresults,tableStyle="none",
+  mycomp = comps[i]
+  if (nchar(mycomp)>31){
+    mysheet = mycomp[1:31]
+  }else{
+    mysheet=comps[i]
+  }
+  addWorksheet(wb = newwb, sheetName = mysheet, gridLines = TRUE)
+  writeDataTable(wb=newwb, sheet=mysheet,x=myresults,tableStyle="none",
                  rowNames=TRUE,withFilter=FALSE,
                  bandedRows=FALSE,bandedCols=FALSE)
 }
