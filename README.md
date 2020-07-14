@@ -9,12 +9,19 @@ Test data are included in the TEST.zip folder. You can run these with the standa
 
 # Version Log
 
-Version 1.1 - April 10, 2020
+# Version 1.1 - April 10, 2020 
+
 -Fixes issues installing ggbiplot and EnhancedVolcano packages
+
 -Automatically removes missing channels based on metadata file
+
 -Fixes issue with assigning FC to wrong genes in summary table
+
 -Adds ubiquitination as a possible PTM
+
 -Fixes issues with setting working directory.
+
 -Adds options for multiple PTMs to app.
 
-Version 1.0 - January 9, 2020 (first stable build)
+
+# Version 1.0 - January 9, 2020 (first stable build)
