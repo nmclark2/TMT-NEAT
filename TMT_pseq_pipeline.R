@@ -459,11 +459,7 @@ normintensitiesimpall=normintensities
 #perform IRS
 if (reps>1){
   message("Internal reference normalization...")
-  if (numrefs==0){
-    refs = rowMeans(normintensitiesimpall)
-  } else{
-    refs = as.matrix(normintensitiesimpall[,grepl('Ref',colnames(normintensitiesimpall),ignore.case=TRUE)])
-  }
+  refs = as.matrix(normintensitiesimpall[,grepl('Ref',colnames(normintensitiesimpall),ignore.case=TRUE)])
   if (numrefs>1){
     for (i in 1:reps){
       if (i==1){
@@ -471,31 +467,72 @@ if (reps>1){
       }else{
         refscomb = data.frame(refscomb,rowMeans(refs[,(numrefs*(i-1)+1):(numrefs*i)]))
       }
-      irsaverage <- apply(refscomb, 1, function(x) exp(mean(log(x))))
-      normfactorref = irsaverage/refscomb
     }
   }else{
     refscomb=refs
-    
   }
-  irsaverage <- apply(refscomb, 1, function(x) exp(mean(log(x))))
+  refslog = log(refscomb+1)
+  zerosums = rowSums(refscomb[,]==0)
+  irsaverage <- rowSums(refslog)/(dim(refscomb)[2]-zerosums)
+  irsaverage = exp(irsaverage)
   normfactorref = irsaverage/refscomb
-    for (i in 1:reps){
-      #get intensity values for this run
-      myints = normintensitiesimpall[,(1+(i-1)*plex):(i*plex)]
-      mynormfactorref = normfactorref[,i]
-      #row normalize each protein against the reference
-      for (j in 1:dim(myints)[2]){
-        myints[,j] = ceiling(myints[,j]*mynormfactorref)
-      }
-      #make a table of normalized intensities
-      if (i==1){
-        finalimpintensitiesIRS = myints
-      }else{
-        finalimpintensitiesIRS = data.frame(finalimpintensitiesIRS,myints)
-      }
+  for (i in 1:dim(normfactorref)[2]){
+    normfactorref[normfactorref[,i]=="Inf",i]=NA
+  }
+  for (i in 1:dim(refscomb)[2]){
+    #get intensity values for this run
+    myintensities = normintensitiesimpall[,colnames(normintensitiesimpall)%in%paste(metadata$name[metadata$run==i],"_",metadata$rep[metadata$run==i],sep="")]
+    mynormfactorref = normfactorref[,i]
+    #row normalize each protein against the reference
+    for (j in 1:dim(myintensities)[2]){
+      myintensities[,j] = ceiling(myintensities[,j]*mynormfactorref)
     }
-  write.csv(finalimpintensitiesIRS,'IRS_normalized_values.csv')
+    #make a table of normalized intensities
+    if (i==1){
+      normintensitiesIRS = myintensities
+    }else{
+      normintensitiesIRS = data.frame(normintensitiesIRS,myintensities)
+    }
+  }
+  write.csv(normintensitiesIRS,'IRS_normalized_values.csv')
+  finalimpintensitiesIRS=normintensitiesIRS
+  # if (numrefs==0){
+  #   refs = rowMeans(normintensitiesimpall)
+  # } else{
+  #   refs = as.matrix(normintensitiesimpall[,grepl('Ref',colnames(normintensitiesimpall),ignore.case=TRUE)])
+  # }
+  # if (numrefs>1){
+  #   for (i in 1:reps){
+  #     if (i==1){
+  #       refscomb = data.frame(rowMeans(refs[,(numrefs*(i-1)+1):(numrefs*i)]))
+  #     }else{
+  #       refscomb = data.frame(refscomb,rowMeans(refs[,(numrefs*(i-1)+1):(numrefs*i)]))
+  #     }
+  #     irsaverage <- apply(refscomb, 1, function(x) exp(mean(log(x))))
+  #     normfactorref = irsaverage/refscomb
+  #   }
+  # }else{
+  #   refscomb=refs
+  #   
+  # }
+  # irsaverage <- apply(refscomb, 1, function(x) exp(mean(log(x))))
+  # normfactorref = irsaverage/refscomb
+  #   for (i in 1:reps){
+  #     #get intensity values for this run
+  #     myints = normintensitiesimpall[,(1+(i-1)*plex):(i*plex)]
+  #     mynormfactorref = normfactorref[,i]
+  #     #row normalize each protein against the reference
+  #     for (j in 1:dim(myints)[2]){
+  #       myints[,j] = ceiling(myints[,j]*mynormfactorref)
+  #     }
+  #     #make a table of normalized intensities
+  #     if (i==1){
+  #       finalimpintensitiesIRS = myints
+  #     }else{
+  #       finalimpintensitiesIRS = data.frame(finalimpintensitiesIRS,myints)
+  #     }
+  #   }
+  # write.csv(finalimpintensitiesIRS,'IRS_normalized_values.csv')
 }else{
   finalimpintensitiesIRS=normintensitiesimpall
 }
@@ -543,26 +580,28 @@ if (numrefs>0){
 }
 
 #make list of all pairwise comparisons
-mysamples = unique(metadata$name)
-mysamples = mysamples[!grepl("Ref",mysamples,ignore.case=TRUE)]
-comps = rep("",choose(length(mysamples),2))
-currentrow = 1
-for (i in 1:(length(mysamples)-1)){
-  for (j in (i+1):length(mysamples)){
-    comps[currentrow] = paste(mysamples[i],"_vs_",mysamples[j],sep="")
-    currentrow = currentrow+1
-  }
-}
-#comps = c('DMSO_vs_IAA','DMSO_vs_bortezomib')
+# mysamples = unique(metadata$name)
+# mysamples = mysamples[!grepl("Ref",mysamples,ignore.case=TRUE)]
+# comps = rep("",choose(length(mysamples),2))
+# currentrow = 1
+# for (i in 1:(length(mysamples)-1)){
+#   for (j in (i+1):length(mysamples)){
+#     comps[currentrow] = paste(mysamples[i],"_vs_",mysamples[j],sep="")
+#     currentrow = currentrow+1
+#   }
+# }
+
+#read in list of comparisons
+comps = read.xlsx('comps.xlsx')
 
 #perform PoissonSeq
 message("Differential expression analysis...")
 pseqdata = finalimpintensitiesIRS
 newwb <- createWorkbook()
 newwb2 <- createWorkbook()
-for (i in 1:length(comps)){
+for (i in 1:dim(comps)[1]){
   #get the intensities for this comparison
-  sepcomps = strsplit(comps[i],"_vs_")
+  sepcomps = strsplit(comps[i,1],"_vs_")
   intensities1 = pseqdata[,grepl(sepcomps[[1]][1],colnames(pseqdata))]
   intensities2 = pseqdata[,grepl(sepcomps[[1]][2],colnames(pseqdata))]
   #intensities1 = na.omit(intensities1)
@@ -572,7 +611,6 @@ for (i in 1:length(comps)){
   #perform PSeq
   pdata = data.frame(intensities1,intensities2)
   pdata = na.omit(pdata)
-  pdata = pdata[rowMeans(pdata)>0,]
   pseq<- PS.Main(dat=list(n=pdata,y=y,type="twoclass",pair=FALSE,gname=row.names(pdata)),para=list(ct.sum=0,ct.mean=0))
   #get the actual fc
   pseq = pseq[order(pseq$gname),]
@@ -584,27 +622,27 @@ for (i in 1:length(comps)){
   nozeros = nozeros[order(row.names(nozeros)),]
   myresults = data.frame(pseq[,c(1:5,7)],nozeros[row.names(nozeros)%in%pseq$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%pseq$gname,])
   #save
-  mycomp = comps[i]
+  mycomp = comps[i,1]
   if (nchar(mycomp)>31){
     mysheet = abbreviate(mycomp,minlength=31)
   }else{
-    mysheet=comps[i]
+    mysheet=comps[i,1]
   }
   addWorksheet(wb = newwb2, sheetName = mysheet, gridLines = TRUE)
   writeDataTable(wb=newwb2, sheet=mysheet,x=myresults,tableStyle="none",
                  rowNames=TRUE,withFilter=FALSE,
                  bandedRows=FALSE,bandedCols=FALSE)
   #make volcano plot
-  png(filename=paste(paste(comps[i],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
+  png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
   e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
-                       title=paste(comps[i],"(",sum(pseq$fdr<qval),")",sep=""),
+                       title=paste(comps[i,1],"(",sum(pseq$fdr<qval),")",sep=""),
                        col=c('grey30','grey60','royalblue','red2'),
                        legendLabels=c('FC<1.1, q>0.1 (NS)','FC>1.1, q>0.1 (NS)','FC<1.1, q<0.1 (S)','FC>1.1, q<0.1 (S)'),
                        legendLabSize=10, ylab = bquote(~-Log[10]~italic(q)))
   plot(e)
-  dev.off() #way more genes! zero imputation works!
+  dev.off() 
   #make qvalue histogram
-  png(filename=paste(paste(comps[i],"_fdr_hist.png",sep="")),width=2000,height=2000,res=300)
+  png(filename=paste(paste(comps[i,1],"_fdr_hist.png",sep="")),width=2000,height=2000,res=300)
   h <- hist(pseq$fdr,breaks=100)
   plot(h)
   dev.off()
