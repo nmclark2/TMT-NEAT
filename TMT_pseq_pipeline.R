@@ -1,34 +1,7 @@
 #Pipeline for SLN, zero imputation, and IRS on TMT data followed by DE analysis using PoissonSeq
 
-TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, PTM, qval){
+TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, PTM, stat, qval,compsfile){
 
-#check that all packages are installed, and load them
-  for (package in c('openxlsx', 'plyr','dplyr','PoissonSeq')) {
-    if (!require(package, character.only=T, quietly=T)) {
-      install.packages(package)
-      library(package, character.only=T)
-    }else{
-      library(package,character.only=T)
-    }
-  }
-  
-  if (!require('ggbiplot',quietly=T)) {
-    install.packages('devtools')
-    library(devtools)
-    install_github("vqv/ggbiplot")
-    library('ggbiplot')
-  }else{
-    library('ggbiplot')
-  }
-  
-  if (!require('EnhancedVolcano',quietly=T)) {
-    install.packages("BiocManager")
-    BiocManager::install("EnhancedVolcano")
-    library('EnhancedVolcano')
-  }else{
-    library('EnhancedVolcano')
-  }
-  
 #make sure the exp name is syntatically valid
 exp = make.names(exp)
 
@@ -592,7 +565,7 @@ if (numrefs>0){
 # }
 
 #read in list of comparisons
-comps = read.xlsx('comps.xlsx')
+comps = read.xlsx(compsfile)
 
 #perform PoissonSeq
 message("Differential expression analysis...")
@@ -633,21 +606,43 @@ for (i in 1:dim(comps)[1]){
                  rowNames=TRUE,withFilter=FALSE,
                  bandedRows=FALSE,bandedCols=FALSE)
   #make volcano plot
-  png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
-  e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
-                       title=paste(comps[i,1],"(",sum(pseq$fdr<qval),")",sep=""),
-                       col=c('grey30','grey60','royalblue','red2'),
-                       legendLabels=c('FC<1.1, q>0.1 (NS)','FC>1.1, q>0.1 (NS)','FC<1.1, q<0.1 (S)','FC>1.1, q<0.1 (S)'),
-                       legendLabSize=10, ylab = bquote(~-Log[10]~italic(q)))
-  plot(e)
-  dev.off() 
+  if (stat=="q"){
+    png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
+    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+                         title=paste(comps[i,1],"(",sum(pseq$fdr<qval),")",sep=""),
+                         col=c('grey30','grey60','royalblue','red2'),
+                         legendLabels=c('FC<1.1, q>0.1','FC>1.1, q>0.1','FC<1.1, q<0.1','FC>1.1, q<0.1'),
+                         legendLabSize=10, ylab = bquote(~-Log[10]~italic(q)))
+    plot(e)
+    dev.off() 
+  }else{
+    png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
+    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+                         title=paste(comps[i,1],"(",sum(pseq$pval<qval),")",sep=""),
+                         col=c('grey30','grey60','royalblue','red2'),
+                         legendLabels=c('FC<1.1, p>0.1','FC>1.1, p>0.1','FC<1.1, p<0.1','FC>1.1, p<0.1'),
+                         legendLabSize=10, ylab = bquote(~-Log[10]~italic(p)))
+    plot(e)
+    dev.off()
+  }
   #make qvalue histogram
-  png(filename=paste(paste(comps[i,1],"_fdr_hist.png",sep="")),width=2000,height=2000,res=300)
-  h <- hist(pseq$fdr,breaks=100)
-  plot(h)
-  dev.off()
+  if (stat=="q"){
+    png(filename=paste(paste(comps[i,1],"_qval_hist.png",sep="")),width=2000,height=2000,res=300)
+    h <- hist(pseq$fdr,breaks=100)
+    plot(h)
+    dev.off()
+  }else{
+    png(filename=paste(paste(comps[i,1],"_pval_hist.png",sep="")),width=2000,height=2000,res=300)
+    h <- hist(pseq$pval,breaks=100)
+    plot(h)
+    dev.off()
+  }
   #get differentially expressed genes and save
-  mypros = pseq[pseq$fdr<qval,c(1:5,7)] 
+  if (stat=="q"){
+    mypros = pseq[pseq$fdr<qval,c(1:5,7)]
+  }else{
+    mypros = pseq[pseq$pval<qval,c(1:5,7)]
+  }
   mypros = mypros[order(mypros$gname),]
   myresults = data.frame(mypros,nozeros[row.names(nozeros)%in%mypros$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%mypros$gname,])
   #save
@@ -658,7 +653,11 @@ for (i in 1:dim(comps)[1]){
 }
 
 #write workbook
-saveWorkbook(newwb, paste("Pseq_all_comps_q",qval,".xlsx",sep=""),overwrite=TRUE)
+if (stat=="q"){
+  saveWorkbook(newwb, paste("Pseq_all_comps_q",qval,".xlsx",sep=""),overwrite=TRUE)
+}else{
+  saveWorkbook(newwb, paste("Pseq_all_comps_p",qval,".xlsx",sep=""),overwrite=TRUE)
+}
 saveWorkbook(newwb2, "Pseq_all_comps.xlsx",overwrite=TRUE)
 message("Finished!")
 }
