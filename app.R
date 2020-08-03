@@ -9,9 +9,11 @@ ui <- fluidPage(
       textInput("text", label = "Working directory", value = "c:/path/to/main/dir"),
       fileInput("file", label = "Metadata file"),
       fileInput("file2", label = "MaxQuant output file"),
+      fileInput("file3", label = "Comparisons file"),
       textInput("text2", label = "Experiment name", value = ""),
       radioButtons("radio", label = "PTM?", choices = c("None","P","U")),
-      numericInput("num", label = "q-value cutoff", value = 0.1),
+      radioButtons('radio2',label="p- or q-value",choices = c('q','p')),
+      numericInput("num", label = "cutoff", value = 0.1),
       actionButton("action", label = "Run")
     ),
     mainPanel(h3("Instructions"),
@@ -38,14 +40,17 @@ ui <- fluidPage(
               strong("MaxQuant output file:"),
               p("Output file from MaxQuant that has been converted to comma separated (.csv) format using
                 Notepad, Microsoft Excel, etc."),
+              strong('Comparisons file'),
+              p('List of pairwise comparisons you would like to make. The names of your samples MUST match what
+                is provided in the metadata file, and must be named A_vs_B. Please see the TEST files for an example.'),
               strong("Experiment name"),
               p("Input what you called your experiment when loading into MaxQuant. If you cannot remember,
                 you can check the summary file."),
               strong("PTM"),
               p("Select P for phosphorylation, U for ubiquitination experiments."),
-              strong("q-value cutoff for differential expression"),
-              p("Indicate the q-value cutoff you would like to use for differential expression analysis. We recommend
-                starting with a q-value of 0.1 and then adjusting as you see fit. Q-value histograms are included in the
+              strong("cutoff for differential expression"),
+              p("Indicate the p- or q-value cutoff you would like to use for differential expression analysis. We recommend
+                starting with a q-value of 0.1 (or p-value of 0.05) and then adjusting as you see fit. p- or q-value histograms are included in the
                 output files to help you choose a more suitable cutoff if desired."),
               h3("Output files"),
               strong("All output files are saved to your working directory."),br(),br(),
@@ -71,7 +76,7 @@ server <- function(input, output) {
   observe({
     if (input$action > 0){
       TMT_pseq_pipeline(workdir=input$text,datafile=input$file2$datapath,metadatafile=input$file$datapath,
-                        exp=input$text2,PTM=input$radio,qval=input$num)
+                        exp=input$text2,PTM=input$radio,stat=input$radio2,qval=input$num,compsfile=input$file3$datapath)
     }
   })
 }
