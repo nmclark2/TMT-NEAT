@@ -5,13 +5,17 @@ Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
 # Test data
-Test data are included in the TEST.zip folder. You can run these with the standard settings in the app. The metadata file is sample.txt and the MaxQuant output file is proteinGroups.csv. The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
+Test data are included in the TEST.zip folder. You can run these with the standard settings in the app. The metadata file is sampledata.txt, the MaxQuant output file is proteinGroups.csv, and the comparison file is comps.xlsx. The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
 
 # Version History
 
-# Version 1.2 - July 20, 2020
+# Version 1.2 - August 3, 2020
 
 - Altered IRS code to allow for missing values between runs. These values are automatically removed during the differential expression analysis but are useful to retain in case one wishes to do comparisons with less than the maximum number of biological replicates.
+
+- Allows user to choose whether using p- or q-values for statistics.
+
+- Pairwise comparisons are now set using a user-supplied Excel file. Please see the TEST data for an example.
 
 # Version 1.1 - April 10, 2020 
 
