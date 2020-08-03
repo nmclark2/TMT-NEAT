@@ -12,13 +12,15 @@ Test data are included in the TEST.zip folder. You can run these with the standa
 
 # Version History
 
-# Version 1.2 - August 3, 2020
-
-- Altered IRS code to allow for missing values between runs. These values are automatically removed during the differential expression analysis but are useful to retain in case one wishes to do comparisons with less than the maximum number of biological replicates.
+# Version 1.3 - August 3, 2020
 
 - Allows user to choose whether using p- or q-values for statistics.
 
 - Pairwise comparisons are now set using a user-supplied Excel file. Please see the TEST data for an example.
+
+# Version 1.2 - July 20, 2020
+
+- Altered IRS code to allow for missing values between runs. These values are automatically removed during the differential expression analysis but are useful to retain in case one wishes to do comparisons with less than the maximum number of biological replicates.
 
 # Version 1.1 - April 10, 2020 
 
