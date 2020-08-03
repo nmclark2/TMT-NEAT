@@ -35,11 +35,10 @@ ui <- fluidPage(
               p("Column 3 should be named \"rep\" and contain the replicate (1,2,3,etc)"),
               p("Column 4 should be called \"name\" and contain the names of your samples (text). NOTE that your
                 reference names must contain the text \"ref\" (capitalization does not matter)."),
-              p("An example metadata file can be downloaded in the sidebar. You then can fill out this file with your
-                information, save it, and upload it to the pipeline."),
+              p("An example metadata file is included in the TEST data."),
               strong("MaxQuant output file:"),
               p("Output file from MaxQuant that has been converted to comma separated (.csv) format using
-                Notepad, Microsoft Excel, etc."),
+                Notepad, Microsoft Excel, etc. An example output file is included in the TEST data."),
               strong('Comparisons file'),
               p('List of pairwise comparisons you would like to make. The names of your samples MUST match what
                 is provided in the metadata file, and must be named A_vs_B. Please see the TEST files for an example.'),
