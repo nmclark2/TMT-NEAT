@@ -2,7 +2,7 @@
 
 # Define UI ----
 ui <- fluidPage(
-  titlePanel('Pipeline for TMT data analysis'),
+  titlePanel('TMT-NEAT: Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing'),
   sidebarLayout(
     sidebarPanel(h3("Files"),
       # Copy the line below to make a file upload manager
@@ -48,6 +48,11 @@ ui <- fluidPage(
                 you can check the summary file."),
               strong("PTM"),
               p("Select P for phosphorylation, U for ubiquitination experiments."),
+              strong('p- or q-value'),
+              p('Select whether to use a p- or q-value for differential expression. We recommend always starting
+                with q-value as this accounts for multiple comparisons. However, in certain datasets with less detected
+                proteins and/or low power, the p-value may be sufficient. Make sure to check the provided histograms to select
+                an adequate cutoff.'),
               strong("cutoff for differential expression"),
               p("Indicate the p- or q-value cutoff you would like to use for differential expression analysis. We recommend
                 starting with a q-value of 0.1 (or p-value of 0.05) and then adjusting as you see fit. p- or q-value histograms are included in the
