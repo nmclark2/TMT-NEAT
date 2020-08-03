@@ -5,7 +5,7 @@ Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
 # Test data
-Test data are included in the TEST.zip folder. You can run these with the standard settings in the app. The metadata file is sample.txt and the MaxQuant output file is proteinGroups.csv. The experiment name is "rep"
+Test data are included in the TEST.zip folder. You can run these with the standard settings in the app. The metadata file is sample.txt and the MaxQuant output file is proteinGroups.csv. The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
 
 # Version History
 
