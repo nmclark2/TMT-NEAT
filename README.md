@@ -8,7 +8,7 @@ Download all R code to your computer, then run the file "RUN_TMT.R" to start the
 This method will automatically write over output files with the same name in your working directory. If you would like to compare your results, make sure to move them from your working directory or change your directory to prevent them being written over.
 
 # Test data
-Test data are included in the TEST.zip folder. You can run these with the standard settings in the app. The metadata file is sampledata.txt, the MaxQuant output file is proteinGroups.csv, and the comparison file is comps.xlsx. PTM should be set to "None". The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
+Test data are included in the TEST.zip folder. The metadata file is sampledata.txt, the MaxQuant output file is proteinGroups.csv, and the comparison file is comps.xlsx. PTM should be set to "None". The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
 
 # Version History
 
