@@ -238,7 +238,7 @@ colnames(newdatalog)=c(colnames(newdata),paste("log2(",metadata$name,"_",metadat
 #save table
 write.csv(newdatalog,'prenormalized_data.csv')
 
-message("Removing proteins in <2 runs...")
+message("Removing proteins in less than 50% of the runs...")
 #now we can normalize the intensity data and do DE analysis with PoissonSeq
 #first we need to get rid of proteins that are not expressed in at least half of the runs
 #to do this we can just pull the first lanes from all the samples as those are the reference lanes

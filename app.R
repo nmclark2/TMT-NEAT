@@ -17,14 +17,11 @@ ui <- fluidPage(
       actionButton("action", label = "Run")
     ),
     mainPanel(h3("Instructions"),
-              p("This pipeline processes TMT proteomics data using the following steps:"),
-              p("1. Proteins that are not present in at least 2 of the runs are eliminated"),
-              p("1B. Imputes reference samples (only if a reference is not included)"),
-              p("1C. Separates PTM sites by multiplicity (only if PTM analysis is included)"),
-              p("2. Performs sample loading normalization"),
-              p("3. Performs internal reference normalization"),
-              p("After data are processed, this pipeline performs differential expression analysis on all
-                pairwise comparisons using PoissonSeq and saves results."),
+              p("TMT-NEAT processes MaxQuant output of TMT-labeled proteomics data."),
+              p("It performs within-run and between-run normalization, provides multiple quality control plots,
+                and statistically tests for differential expression."),
+              p('TMT-NEAT currently works with protein abundance as well as PTM data (currently phosphorylation
+                and ubiquitination are supported, but we hope to add more in the future)'),
               h3("Input files"),
               strong("Working directory"),
               p("Name of your working directory which MUST contain your metadata and MaxQuant output files."),
