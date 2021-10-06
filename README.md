@@ -12,6 +12,13 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 
 # Version History
 
+# Version 1.5 - October 6, 2021
+-Adds option to skip sample loading normalization for samples where enrichment is expected, such as kinase assays, co-IPs, TurboID, etc.
+
+-Clarifies what the experiment name parameter is used for, and allows users to proceed without an experiment name.
+
+-Changes how contaminant sequences are removed: now based on the majority sequence rather than all detected sequences.
+
 # Version 1.4 - August 23, 2021
 [![DOI](https://zenodo.org/badge/232925706.svg)](https://zenodo.org/badge/latestdoi/232925706)
 
