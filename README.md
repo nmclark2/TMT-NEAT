@@ -14,6 +14,11 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 
 # Version History
 
+# Version 1.4 - August 23, 2021
+[![DOI](https://zenodo.org/badge/232925706.svg)](https://zenodo.org/badge/latestdoi/232925706)
+
+Same as Version 1.3, but archived for publication in Nature Communications: https://doi.org/10.1038/s41467-021-26165
+
 # Version 1.3 - August 3, 2020
 
 - Allows user to choose whether using p- or q-values for statistics.
