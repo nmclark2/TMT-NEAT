@@ -10,8 +10,9 @@ ui <- fluidPage(
       fileInput("file", label = "Metadata file"),
       fileInput("file2", label = "MaxQuant output file"),
       fileInput("file3", label = "Comparisons file"),
-      textInput("text2", label = "Experiment name", value = ""),
+      textInput("text2", label = "Experiment name", value = "None"),
       radioButtons("radio", label = "PTM?", choices = c("None","P","U")),
+      radioButtons("radio3", label = "Sample Loading Normalization?", choices = c("Yes","No")),
       radioButtons('radio2',label="p- or q-value",choices = c('q','p')),
       numericInput("num", label = "cutoff", value = 0.1),
       actionButton("action", label = "Run")
@@ -41,7 +42,11 @@ ui <- fluidPage(
                 is provided in the metadata file, and must be named A_vs_B. Please see the TEST files for an example.'),
               strong("Experiment name"),
               p("Input what you called your experiment when loading into MaxQuant. If you cannot remember,
-                you can check the summary file."),
+                you can check the summary file. This is useful if you only want to analyze specific samples in your
+                output file. If you leave this as is, it will automatically select all samples for analysis."),
+              strong("Sample Loading Normalization"),
+              p("Option to remove sample loading normalization. This is useful for experiments where enrichment is
+                expected and could be altered by sample loading normalization, such as kinase assays, co-IPs, TurboID, etc."),
               strong("PTM"),
               p("Select P for phosphorylation, U for ubiquitination experiments."),
               strong('p- or q-value'),
@@ -77,7 +82,7 @@ server <- function(input, output) {
   observe({
     if (input$action > 0){
       TMT_pseq_pipeline(workdir=input$text,datafile=input$file2$datapath,metadatafile=input$file$datapath,
-                        exp=input$text2,PTM=input$radio,stat=input$radio2,qval=input$num,compsfile=input$file3$datapath)
+                        exp=input$text2,SLN=input$radio3,PTM=input$radio,stat=input$radio2,qval=input$num,compsfile=input$file3$datapath)
     }
   })
 }

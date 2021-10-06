@@ -1,6 +1,7 @@
 #Pipeline for SLN, zero imputation, and IRS on TMT data followed by DE analysis using PoissonSeq
+#Last updated: Dec 16, 2020
 
-TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, PTM, stat, qval,compsfile){
+TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, SLN, PTM, stat, qval,compsfile){
 
 #make sure the exp name is syntatically valid
 exp = make.names(exp)
@@ -32,7 +33,11 @@ if (PTM == "P"){
   rawintensities = intensities[!grepl('corrected',colnames(intensities))]
   rawintensities = rawintensities[!grepl('count',colnames(rawintensities))]
   #rawintensities = intensities[grepl('corrected',colnames(intensities))]
-  intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
+  if(exp=="None"){
+    intensitiesK=rawintensities
+  }else{
+    intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))] 
+  }
   #remove blanks
   metadata3 = rep(metadataorg$name,each=3)
   intensitiesK = intensitiesK[,!grepl('blank',metadata3,ignore.case=TRUE)]
@@ -119,7 +124,11 @@ if (PTM == "P"){
   rawintensities = intensities[!grepl('corrected',colnames(intensities))]
   rawintensities = rawintensities[!grepl('count',colnames(rawintensities))]
   #rawintensities = intensities[grepl('corrected',colnames(intensities))]
-  intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
+  if(exp=="None"){
+    intensitiesK=rawintensities
+  }else{
+    intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))] 
+  }
   #remove blanks
   metadata3 = rep(metadataorg$name,each=3)
   intensitiesK = intensitiesK[,!grepl('blank',metadata3,ignore.case=TRUE)]
@@ -205,7 +214,11 @@ if (PTM == "P"){
   rawintensities = rawintensities[!grepl('count',colnames(rawintensities))]
   intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))]
   #remove blanks
-  intensitiesK = intensitiesK[,!grepl('blank',metadataorg$name,ignore.case=TRUE)]
+  if(exp=="None"){
+    intensitiesK=rawintensities
+  }else{
+    intensitiesK = rawintensities[,grepl(exp,colnames(rawintensities))] 
+  }
   #intensitiesK = intensitiesK[,metadata$sample]
   #splitnames = strsplit(colnames(intensitiesK),'NLB')
   #splitnames = unlist(splitnames)
@@ -227,8 +240,13 @@ if (PTM == "P"){
 colnames(newdata)[(dim(mydata)[2]+1):dim(newdata)[2]]=paste(metadata$name,metadata$rep,sep="_")
 
 #get rid of all contaminants
-newdata = newdata[!grepl("CON",newdata$Proteins,ignore.case=TRUE),]
-newdata = newdata[!grepl("REV",newdata$Protein, ignore.case=TRUE),]
+if (PTM=="P" | PTM=="U"){
+  newdata = newdata[!grepl("CON",newdata$Protein,ignore.case=TRUE),]
+  newdata = newdata[!grepl("REV",newdata$Protein, ignore.case=TRUE),]
+}else{
+  newdata = newdata[!grepl("CON",newdata$Majority.protein.IDs,ignore.case=TRUE),]
+  newdata = newdata[!grepl("REV",newdata$Majority.protein.IDs, ignore.case=TRUE),]
+}
 
 #finally add log2 transformed values because apparently people like those
 intensities = newdata[,(dim(mydata)[2]+1):dim(newdata)[2]]
@@ -276,12 +294,31 @@ invisible(b <- boxplot(log2(finalintensities+1),col=colors[unlist(lapply(1:reps,
 print(b)
 dev.off()
 
-message("Sample loading normalization...")
-#peform sample loading normalization (SLN)
-if (reps>1){
-  for (i in 1:reps){
-    #get intensity values for this run
-    myints = finalintensities[,(1+(i-1)*plex):(i*plex)]
+if(SLN=="YES"){
+  message("Sample loading normalization...")
+  #peform sample loading normalization (SLN)
+  if (reps>1){
+    for (i in 1:reps){
+      #get intensity values for this run
+      myints = finalintensities[,(1+(i-1)*plex):(i*plex)]
+      #column normalize
+      sums = colSums(myints)
+      meansums = mean(sums)
+      normfactor = sums/meansums
+      myintensitiesnorm = myints
+      for (j in 1:dim(myints)[2]){
+        myintensitiesnorm[,j] = ceiling(myints[,j]/normfactor[j])
+      }
+      #make a table of normalized intensities
+      if (i==1){
+        normintensities = myintensitiesnorm
+      }else{
+        normintensities = data.frame(normintensities,myintensitiesnorm)
+      }
+    }
+    write.csv(normintensities,"sample_loading_normalization.csv")
+  }else{
+    myints = finalintensities
     #column normalize
     sums = colSums(myints)
     meansums = mean(sums)
@@ -290,26 +327,11 @@ if (reps>1){
     for (j in 1:dim(myints)[2]){
       myintensitiesnorm[,j] = ceiling(myints[,j]/normfactor[j])
     }
-    #make a table of normalized intensities
-    if (i==1){
-      normintensities = myintensitiesnorm
-    }else{
-      normintensities = data.frame(normintensities,myintensitiesnorm)
-    }
+    normintensities=myintensitiesnorm
+    write.csv(normintensities,"sample_loading_normalization.csv")
   }
-  write.csv(normintensities,"sample_loading_normalization.csv")
 }else{
-  myints = finalintensities
-  #column normalize
-  sums = colSums(myints)
-  meansums = mean(sums)
-  normfactor = sums/meansums
-  myintensitiesnorm = myints
-  for (j in 1:dim(myints)[2]){
-    myintensitiesnorm[,j] = ceiling(myints[,j]/normfactor[j])
-  }
-  normintensities=myintensitiesnorm
-  write.csv(normintensities,"sample_loading_normalization.csv")
+  normintensities = finalintensities
 }
 
 #zero imputation
@@ -588,6 +610,8 @@ for (i in 1:dim(comps)[1]){
   #get the actual fc
   pseq = pseq[order(pseq$gname),]
   pdata = pdata[order(row.names(pdata)),]
+  #make sure everything in pdata is in pseq
+  pdata = pdata[row.names(pdata)%in%pseq$gname,]
   myFC = data.frame(rowMeans(pdata[,y==2])/rowMeans(pdata[,y==1]),row.names=row.names(pdata))
   pseq[,7]=log2(myFC)
   colnames(pseq)[7]="log2FC"
@@ -606,6 +630,7 @@ for (i in 1:dim(comps)[1]){
                  rowNames=TRUE,withFilter=FALSE,
                  bandedRows=FALSE,bandedCols=FALSE)
   #make volcano plot
+  signum = sum(pseq$pval<qval)
   if (stat=="q"){
     png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
     e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
@@ -617,10 +642,10 @@ for (i in 1:dim(comps)[1]){
     dev.off() 
   }else{
     png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
-    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
-                         title=paste(comps[i,1],"(",sum(pseq$pval<qval),")",sep=""),
+    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,5),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+                         title=paste(comps[i,1],"(",signum,")",sep=""),
                          col=c('grey30','grey60','royalblue','red2'),
-                         legendLabels=c('FC<1.1, p>0.1','FC>1.1, p>0.1','FC<1.1, p<0.1','FC>1.1, p<0.1'),
+                         legendLabels=c('FC<1.1, p>0.05','FC>1.1, p>0.05','FC<1.1, p<0.05','FC>1.1, p<0.05'),
                          legendLabSize=10, ylab = bquote(~-Log[10]~italic(p)))
     plot(e)
     dev.off()
