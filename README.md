@@ -15,7 +15,7 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 # Version History
 
 # Version 1.5 - October 6, 2021
--Adds option to skip sample loading normalization for samples where enrichment is expected, such as kinase assays, co-IPs, TurboID, etc.
+- Adds option to skip sample loading normalization for samples where enrichment is expected, such as kinase assays, co-IPs, TurboID, etc.
 
 - Clarifies what the experiment name parameter is used for, and allows users to proceed without an experiment name.
 
