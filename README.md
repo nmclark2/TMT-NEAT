@@ -1,6 +1,8 @@
 # TMT-NEAT
 Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing
 
+[![DOI](https://zenodo.org/badge/232925706.svg)](https://zenodo.org/badge/latestdoi/232925706)
+
 # Install instructions
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
@@ -15,14 +17,13 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 # Version 1.5 - October 6, 2021
 -Adds option to skip sample loading normalization for samples where enrichment is expected, such as kinase assays, co-IPs, TurboID, etc.
 
--Clarifies what the experiment name parameter is used for, and allows users to proceed without an experiment name.
+- Clarifies what the experiment name parameter is used for, and allows users to proceed without an experiment name.
 
--Changes how contaminant sequences are removed: now based on the majority sequence rather than all detected sequences.
+- Changes how contaminant sequences are removed: now based on the majority sequence rather than all detected sequences.
 
 # Version 1.4 - August 23, 2021
-[![DOI](https://zenodo.org/badge/232925706.svg)](https://zenodo.org/badge/latestdoi/232925706)
 
-Same as Version 1.3, but archived for publication in Nature Communications: https://doi.org/10.1038/s41467-021-26165
+- Same as Version 1.3, but archived for publication in Nature Communications: https://doi.org/10.1038/s41467-021-26165
 
 # Version 1.3 - August 3, 2020
 
