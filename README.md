@@ -1,8 +1,6 @@
 # TMT-NEAT
 Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing
 
-DOI: https://doi.org/10.5281/zenodo.5237316
-
 # Install instructions
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
