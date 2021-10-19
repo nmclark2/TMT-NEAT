@@ -16,7 +16,7 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 # Version History
 
 # Version 1.5.1 - October 19, 2021
-- Fixes volcano plotting parameters for compatbility with EnhancedVolcano version > 1.4.
+- Fixes volcano plotting parameters for compatibility with EnhancedVolcano version > 1.4.
 
 # Version 1.5 - October 6, 2021
 - Adds option to skip sample loading normalization for samples where enrichment is expected, such as kinase assays, co-IPs, TurboID, etc.
