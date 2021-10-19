@@ -7,12 +7,16 @@ Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
 # Known issues
-This method will automatically write over output files with the same name in your working directory. If you would like to compare your results, make sure to move them from your working directory or change your directory to prevent them being written over.
+1) This method will automatically write over output files with the same name in your working directory. If you would like to compare your results, make sure to move them from your working directory or change your directory to prevent them being written over.
+2) Certain parameters were deprecated in version > 1.4 of the EnhancedVolcano package. If you are a new user of TMT-NEAT, or if you have updated the EnhancedVolcano package to version >1.4, please make sure to use Version 1.5.1 and beyond.
 
 # Test data
 Test data are included in the TEST.zip folder. The metadata file is sampledata.txt, the MaxQuant output file is proteinGroups.csv, and the comparison file is comps.xlsx. PTM should be set to "None". The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
 
 # Version History
+
+# Version 1.5.1 - October 19, 2021
+- Fixes volcano plotting parameters for compatbility with EnhancedVolcano version > 1.4.
 
 # Version 1.5 - October 6, 2021
 - Adds option to skip sample loading normalization for samples where enrichment is expected, such as kinase assays, co-IPs, TurboID, etc.
