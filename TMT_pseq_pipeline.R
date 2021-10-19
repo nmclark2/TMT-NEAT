@@ -633,7 +633,7 @@ for (i in 1:dim(comps)[1]){
   signum = sum(pseq$pval<qval)
   if (stat=="q"){
     png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
-    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),pointSize=1,labSize=0,FCcutoff=log2(1.1),pCutoff=qval,
                          title=paste(comps[i,1],"(",sum(pseq$fdr<qval),")",sep=""),
                          col=c('grey30','grey60','royalblue','red2'),
                          legendLabels=c('FC<1.1, q>0.1','FC>1.1, q>0.1','FC<1.1, q<0.1','FC>1.1, q<0.1'),
@@ -642,7 +642,7 @@ for (i in 1:dim(comps)[1]){
     dev.off() 
   }else{
     png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
-    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,5),xlim=c(-3,3),transcriptPointSize=1,transcriptLabSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,3),xlim=c(-3,3),pointSize=1,labSize=0,FCcutoff=log2(1.1),pCutoff=qval,
                          title=paste(comps[i,1],"(",signum,")",sep=""),
                          col=c('grey30','grey60','royalblue','red2'),
                          legendLabels=c('FC<1.1, p>0.05','FC>1.1, p>0.05','FC<1.1, p<0.05','FC>1.1, p<0.05'),
