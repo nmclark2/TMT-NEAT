@@ -294,7 +294,7 @@ invisible(b <- boxplot(log2(finalintensities+1),col=colors[unlist(lapply(1:reps,
 print(b)
 dev.off()
 
-if(SLN=="YES"){
+if(SLN=="Yes"){
   message("Sample loading normalization...")
   #peform sample loading normalization (SLN)
   if (reps>1){
