@@ -15,6 +15,9 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 
 # Version History
 
+# Version 1.5.2 - January 14, 2022
+- Fixes an issue with the Sample Loading Normalization parameter where SLN would always be skipped even if the user selected "Yes". The parameter works as intended now.
+
 # Version 1.5.1 - October 19, 2021
 - Fixes volcano plotting parameters for compatibility with EnhancedVolcano version > 1.4.
 
