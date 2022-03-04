@@ -9,6 +9,7 @@ Download all R code to your computer, then run the file "RUN_TMT.R" to start the
 # Known issues
 1) This method will automatically write over output files with the same name in your working directory. If you would like to compare your results, make sure to move them from your working directory or change your directory to prevent them being written over.
 2) Certain parameters were deprecated in version > 1.4 of the EnhancedVolcano package. If you are a new user of TMT-NEAT, or if you have updated the EnhancedVolcano package to version >1.4, please make sure to use Version 1.5.1 and beyond.
+3) Please be aware that your samples are read into TMT-NEAT based on their order in the MaxQuant output table. This means that, if you do not use leading zeroes in your sample names, your samples may be in the incorrect order. Please ensure that your samples are in the correct order in the MaxQuant output table before using TMT-NEAT.
 
 # Test data
 Test data are included in the TEST.zip folder. The metadata file is sampledata.txt, the MaxQuant output file is proteinGroups.csv, and the comparison file is comps.xlsx. PTM should be set to "None". The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
