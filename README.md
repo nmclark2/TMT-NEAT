@@ -16,6 +16,9 @@ Test data are included in the TEST.zip folder. The metadata file is sampledata.t
 
 # Version History
 
+# Version 1.5.3 - March 8, 2022
+- PoissonSeq is now loaded and installed from its Github repository. It was archived on 03-07-2022 by CRAN. The PoissonSeq analysis and code still run as intended, but has not been updated since October 8, 2012, likely leading to this archival. The Github repository should be permanent and resolve these issues.
+
 # Version 1.5.2 - January 14, 2022
 - Fixes an issue with the Sample Loading Normalization parameter where SLN would always be skipped even if the user selected "Yes". The parameter works as intended now.
 
