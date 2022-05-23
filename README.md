@@ -15,11 +15,11 @@ Download all R code to your computer, then run the file "RUN_TMT.R" to start the
 Test data are included in the TEST.zip folder. These data are published in Zander et al, 2020, Nature Communications: 
 https://doi.org/10.1038/s41477-020-0605-7
 
--Two separate analyses can be performed: one on the protein abundance data (proteinGroups.csv), and one for the phosphosite data (Phospho (STY)Sites.csv). The "sampledata.txt" file is used as the Metadata file for both analyses.
--For the protein abundance data, Experiment Name is "ProtAbun" and PTM is set to "None."
--For the phosphosite data, Experiment Name is "Phospho" and PTM is set to "P."
--Differential expression analysis may be performed using the "comps.xlsx" file with q-value < 0.1. 
--We include screenshots for each analysis to help facilitate parameter selection.
+- Two separate analyses can be performed: one on the protein abundance data (proteinGroups.csv), and one for the phosphosite data (Phospho (STY)Sites.csv). The "sampledata.txt" file is used as the Metadata file for both analyses.
+- For the protein abundance data, Experiment Name is "ProtAbun" and PTM is set to "None."
+- For the phosphosite data, Experiment Name is "Phospho" and PTM is set to "P."
+- Differential expression analysis may be performed using the "comps.xlsx" file with q-value < 0.1. 
+- We include screenshots for each analysis to help facilitate parameter selection.
 
 # Version History
 
