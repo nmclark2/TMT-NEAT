@@ -12,9 +12,22 @@ Download all R code to your computer, then run the file "RUN_TMT.R" to start the
 3) Please be aware that your samples are read into TMT-NEAT based on their order in the MaxQuant output table. This means that, if you do not use leading zeroes in your sample names, your samples may be in the incorrect order. Please ensure that your samples are in the correct order in the MaxQuant output table before using TMT-NEAT.
 
 # Test data
-Test data are included in the TEST.zip folder. The metadata file is sampledata.txt, the MaxQuant output file is proteinGroups.csv, and the comparison file is comps.xlsx. PTM should be set to "None". The experiment name is "rep". We recommend comparing results using a p-value of 0.05 or a q-value of 0.1.
+Test data are included in the TEST.zip folder. These data are published in Zander et al, 2020, Nature Communications: 
+https://doi.org/10.1038/s41477-020-0605-7
+
+-Two separate analyses can be performed: one on the protein abundance data (proteinGroups.csv), and one for the phosphosite data (Phospho (STY)Sites.csv). The "sampledata.txt" file is used as the Metadata file for both analyses.
+-For the protein abundance data, Experiment Name is "ProtAbun" and PTM is set to "None."
+-For the phosphosite data, Experiment Name is "Phospho" and PTM is set to "P."
+-Differential expression analysis may be performed using the "comps.xlsx" file with q-value < 0.1. 
+-We include screenshots for each analysis to help facilitate parameter selection.
 
 # Version History
+
+# Version 1.6 - May 23, 2022
+- New, published test data from Zander et al, 2020, Nature Communications are now included. The previous test data have been removed. By incorporating published, citable test data, we hope to improve reproducibility of results as more features are added in the future.
+- Pacman is now used to install and load packages, with the exception of PoissonSeq, which is still directly installed from the Github repository as detailed in the Version 1.5.3 update.
+- There is now a screenshot button which can be used to save an image of the app window.
+- Differential expression is now optional. To run TMT-NEAT processing without differential expression, set the "Differential Expression?" button to "No." If not performing differential expression, the "comps.xlsx" file is not required.
 
 # Version 1.5.3 - March 8, 2022
 - PoissonSeq is now loaded and installed from its Github repository. It was archived on 03-07-2022 by CRAN. The PoissonSeq analysis and code still run as intended, but has not been updated since October 8, 2012, likely leading to this archival. The Github repository should be permanent and resolve these issues.
