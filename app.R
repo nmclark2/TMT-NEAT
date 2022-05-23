@@ -13,9 +13,11 @@ ui <- fluidPage(
       textInput("text2", label = "Experiment name", value = "None"),
       radioButtons("radio", label = "PTM?", choices = c("None","P","U")),
       radioButtons("radio3", label = "Sample Loading Normalization?", choices = c("Yes","No")),
+      radioButtons("radio4", label= "Differential Expression?", choices = c("Yes","No")),
       radioButtons('radio2',label="p- or q-value",choices = c('q','p')),
       numericInput("num", label = "cutoff", value = 0.1),
-      actionButton("action", label = "Run")
+      actionButton("action", label = "Run"),
+      actionButton ('screenshot', HTML ('Screenshot this window'))
     ),
     mainPanel(h3("Instructions"),
               p("TMT-NEAT processes MaxQuant output of TMT-labeled proteomics data."),
@@ -39,7 +41,7 @@ ui <- fluidPage(
                 Notepad, Microsoft Excel, etc. An example output file is included in the TEST data."),
               strong('Comparisons file'),
               p('List of pairwise comparisons you would like to make. The names of your samples MUST match what
-                is provided in the metadata file, and must be named A_vs_B. Please see the TEST files for an example.'),
+                is provided in the metadata file, and must be named A_vs_B. Please see the TEST files for an example. If not performing differential expression, you may leave this blank.'),
               strong("Experiment name"),
               p("Input what you called your experiment when loading into MaxQuant. If you cannot remember,
                 you can check the summary file. This is useful if you only want to analyze specific samples in your
@@ -49,6 +51,8 @@ ui <- fluidPage(
                 expected and could be altered by sample loading normalization, such as kinase assays, co-IPs, TurboID, etc."),
               strong("PTM"),
               p("Select P for phosphorylation, U for ubiquitination experiments."),
+              strong("Differential Expression"),
+              p("Select YES if performing differential expression"),
               strong('p- or q-value'),
               p('Select whether to use a p- or q-value for differential expression. We recommend always starting
                 with q-value as this accounts for multiple comparisons. However, in certain datasets with less detected
@@ -82,8 +86,12 @@ server <- function(input, output) {
   observe({
     if (input$action > 0){
       TMT_pseq_pipeline(workdir=input$text,datafile=input$file2$datapath,metadatafile=input$file$datapath,
-                        exp=input$text2,SLN=input$radio3,PTM=input$radio,stat=input$radio2,qval=input$num,compsfile=input$file3$datapath)
+                        exp=input$text2,SLN=input$radio3,PTM=input$radio,DE=input$radio4,stat=input$radio2,qval=input$num,compsfile=input$file3$datapath)
     }
+  })
+  #Save a screenshot of the window when the user clicks the button
+  observeEvent(input$screenshot, {
+    screenshot()
   })
 }
 

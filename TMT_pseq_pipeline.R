@@ -1,7 +1,7 @@
 #Pipeline for SLN, zero imputation, and IRS on TMT data followed by DE analysis using PoissonSeq
 #Last updated: Dec 16, 2020
 
-TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, SLN, PTM, stat, qval,compsfile){
+TMT_pseq_pipeline = function(workdir, datafile, metadatafile, exp, SLN, PTM, DE, stat, qval,compsfile){
 
 #make sure the exp name is syntatically valid
 exp = make.names(exp)
@@ -574,115 +574,124 @@ if (numrefs>0){
   dev.off()
 }
 
-#make list of all pairwise comparisons
-# mysamples = unique(metadata$name)
-# mysamples = mysamples[!grepl("Ref",mysamples,ignore.case=TRUE)]
-# comps = rep("",choose(length(mysamples),2))
-# currentrow = 1
-# for (i in 1:(length(mysamples)-1)){
-#   for (j in (i+1):length(mysamples)){
-#     comps[currentrow] = paste(mysamples[i],"_vs_",mysamples[j],sep="")
-#     currentrow = currentrow+1
-#   }
-# }
-
-#read in list of comparisons
-comps = read.xlsx(compsfile)
-
-#perform PoissonSeq
-message("Differential expression analysis...")
-pseqdata = finalimpintensitiesIRS
-newwb <- createWorkbook()
-newwb2 <- createWorkbook()
-for (i in 1:dim(comps)[1]){
-  #get the intensities for this comparison
-  sepcomps = strsplit(comps[i,1],"_vs_")
-  intensities1 = pseqdata[,grepl(sepcomps[[1]][1],colnames(pseqdata))]
-  intensities2 = pseqdata[,grepl(sepcomps[[1]][2],colnames(pseqdata))]
-  #intensities1 = na.omit(intensities1)
-  #intensities2 = na.omit(intensities2)
-  #make indicator variable y
-  y= c(rep(1,dim(intensities1)[2]),rep(2,dim(intensities2)[2]))
-  #perform PSeq
-  pdata = data.frame(intensities1,intensities2)
-  pdata = na.omit(pdata)
-  pseq<- PS.Main(dat=list(n=pdata,y=y,type="twoclass",pair=FALSE,gname=row.names(pdata)),para=list(ct.sum=0,ct.mean=0))
-  #get the actual fc
-  pseq = pseq[order(pseq$gname),]
-  pdata = pdata[order(row.names(pdata)),]
-  #make sure everything in pdata is in pseq
-  pdata = pdata[row.names(pdata)%in%pseq$gname,]
-  myFC = data.frame(rowMeans(pdata[,y==2])/rowMeans(pdata[,y==1]),row.names=row.names(pdata))
-  pseq[,7]=log2(myFC)
-  colnames(pseq)[7]="log2FC"
-  pseqdata = pseqdata[order(row.names(pseqdata)),]
-  nozeros = nozeros[order(row.names(nozeros)),]
-  myresults = data.frame(pseq[,c(1:5,7)],nozeros[row.names(nozeros)%in%pseq$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%pseq$gname,])
-  #save
-  mycomp = comps[i,1]
-  if (nchar(mycomp)>31){
-    mysheet = abbreviate(mycomp,minlength=31)
-  }else{
-    mysheet=comps[i,1]
+if(DE=="Yes"){
+  #make list of all pairwise comparisons
+  # mysamples = unique(metadata$name)
+  # mysamples = mysamples[!grepl("Ref",mysamples,ignore.case=TRUE)]
+  # comps = rep("",choose(length(mysamples),2))
+  # currentrow = 1
+  # for (i in 1:(length(mysamples)-1)){
+  #   for (j in (i+1):length(mysamples)){
+  #     comps[currentrow] = paste(mysamples[i],"_vs_",mysamples[j],sep="")
+  #     currentrow = currentrow+1
+  #   }
+  # }
+  
+  #read in list of comparisons
+  comps = read.xlsx(compsfile)
+  
+  #perform PoissonSeq
+  message("Differential expression analysis...")
+  pseqdata = finalimpintensitiesIRS
+  newwb <- createWorkbook()
+  newwb2 <- createWorkbook()
+  for (i in 1:dim(comps)[1]){
+    #get the intensities for this comparison
+    sepcomps = strsplit(comps[i,1],"_vs_")
+    intensities1 = pseqdata[,grepl(sepcomps[[1]][1],colnames(pseqdata))]
+    intensities2 = pseqdata[,grepl(sepcomps[[1]][2],colnames(pseqdata))]
+    #intensities1 = na.omit(intensities1)
+    #intensities2 = na.omit(intensities2)
+    #make indicator variable y
+    y= c(rep(1,dim(intensities1)[2]),rep(2,dim(intensities2)[2]))
+    #perform PSeq
+    pdata = data.frame(intensities1,intensities2)
+    pdata = na.omit(pdata)
+    pseq<- PS.Main(dat=list(n=pdata,y=y,type="twoclass",pair=FALSE,gname=row.names(pdata)),para=list(ct.sum=0,ct.mean=0))
+    #get the actual fc
+    pseq = pseq[order(pseq$gname),]
+    pdata = pdata[order(row.names(pdata)),]
+    #make sure everything in pdata is in pseq
+    pdata = pdata[row.names(pdata)%in%pseq$gname,]
+    myFC = data.frame(rowMeans(pdata[,y==2])/rowMeans(pdata[,y==1]),row.names=row.names(pdata))
+    pseq[,7]=log2(myFC)
+    colnames(pseq)[7]="log2FC"
+    pseqdata = pseqdata[order(row.names(pseqdata)),]
+    nozeros = nozeros[order(row.names(nozeros)),]
+    myresults = data.frame(pseq[,c(1:5,7)],nozeros[row.names(nozeros)%in%pseq$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%pseq$gname,])
+    #save
+    mycomp = comps[i,1]
+    if (nchar(mycomp)>31){
+      mysheet = abbreviate(mycomp,minlength=31)
+    }else{
+      mysheet=comps[i,1]
+    }
+    addWorksheet(wb = newwb2, sheetName = mysheet, gridLines = TRUE)
+    writeDataTable(wb=newwb2, sheet=mysheet,x=myresults,tableStyle="none",
+                   rowNames=TRUE,withFilter=FALSE,
+                   bandedRows=FALSE,bandedCols=FALSE)
+    #make volcano plot
+    signum = sum(pseq$pval<qval)
+    if (stat=="q"){
+      png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
+      e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),pointSize=1,labSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+                           title=paste(comps[i,1],"(",sum(pseq$fdr<qval),")",sep=""),
+                           col=c('grey30','grey60','royalblue','red2'),
+                           legendLabels=c('FC<1.1, q>0.1','FC>1.1, q>0.1','FC<1.1, q<0.1','FC>1.1, q<0.1'),
+                           legendLabSize=10, ylab = bquote(~-Log[10]~italic(q)))
+      plot(e)
+      dev.off() 
+    }else{
+      png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
+      e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,3),xlim=c(-3,3),pointSize=1,labSize=0,FCcutoff=log2(1.1),pCutoff=qval,
+                           title=paste(comps[i,1],"(",signum,")",sep=""),
+                           col=c('grey30','grey60','royalblue','red2'),
+                           legendLabels=c('FC<1.1, p>0.05','FC>1.1, p>0.05','FC<1.1, p<0.05','FC>1.1, p<0.05'),
+                           legendLabSize=10, ylab = bquote(~-Log[10]~italic(p)))
+      plot(e)
+      dev.off()
+    }
+    #make qvalue histogram
+    if (stat=="q"){
+      png(filename=paste(paste(comps[i,1],"_qval_hist.png",sep="")),width=2000,height=2000,res=300)
+      h <- hist(pseq$fdr,breaks=100)
+      plot(h)
+      dev.off()
+    }else{
+      png(filename=paste(paste(comps[i,1],"_pval_hist.png",sep="")),width=2000,height=2000,res=300)
+      h <- hist(pseq$pval,breaks=100)
+      plot(h)
+      dev.off()
+    }
+    #get differentially expressed genes and save
+    if (stat=="q"){
+      mypros = pseq[pseq$fdr<qval,c(1:5,7)]
+    }else{
+      mypros = pseq[pseq$pval<qval,c(1:5,7)]
+    }
+    mypros = mypros[order(mypros$gname),]
+    myresults = data.frame(mypros,nozeros[row.names(nozeros)%in%mypros$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%mypros$gname,])
+    #save
+    addWorksheet(wb = newwb, sheetName = mysheet, gridLines = TRUE)
+    writeDataTable(wb=newwb, sheet=mysheet,x=myresults,tableStyle="none",
+                   rowNames=TRUE,withFilter=FALSE,
+                   bandedRows=FALSE,bandedCols=FALSE)
   }
-  addWorksheet(wb = newwb2, sheetName = mysheet, gridLines = TRUE)
-  writeDataTable(wb=newwb2, sheet=mysheet,x=myresults,tableStyle="none",
-                 rowNames=TRUE,withFilter=FALSE,
-                 bandedRows=FALSE,bandedCols=FALSE)
-  #make volcano plot
-  signum = sum(pseq$pval<qval)
+  
+  #write workbook
   if (stat=="q"){
-    png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
-    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','fdr',ylim=c(0,3),xlim=c(-3,3),pointSize=1,labSize=0,FCcutoff=log2(1.1),pCutoff=qval,
-                         title=paste(comps[i,1],"(",sum(pseq$fdr<qval),")",sep=""),
-                         col=c('grey30','grey60','royalblue','red2'),
-                         legendLabels=c('FC<1.1, q>0.1','FC>1.1, q>0.1','FC<1.1, q<0.1','FC>1.1, q<0.1'),
-                         legendLabSize=10, ylab = bquote(~-Log[10]~italic(q)))
-    plot(e)
-    dev.off() 
+    saveWorkbook(newwb, paste("Pseq_all_comps_q",qval,".xlsx",sep=""),overwrite=TRUE)
   }else{
-    png(filename=paste(paste(comps[i,1],"_volcano_plot_",qval,".png",sep="")),width=2500,height=2000,res=300)
-    e <- EnhancedVolcano(pseq,rownames(pseq),'log2FC','pval',ylim=c(0,3),xlim=c(-3,3),pointSize=1,labSize=0,FCcutoff=log2(1.1),pCutoff=qval,
-                         title=paste(comps[i,1],"(",signum,")",sep=""),
-                         col=c('grey30','grey60','royalblue','red2'),
-                         legendLabels=c('FC<1.1, p>0.05','FC>1.1, p>0.05','FC<1.1, p<0.05','FC>1.1, p<0.05'),
-                         legendLabSize=10, ylab = bquote(~-Log[10]~italic(p)))
-    plot(e)
-    dev.off()
+    saveWorkbook(newwb, paste("Pseq_all_comps_p",qval,".xlsx",sep=""),overwrite=TRUE)
   }
-  #make qvalue histogram
-  if (stat=="q"){
-    png(filename=paste(paste(comps[i,1],"_qval_hist.png",sep="")),width=2000,height=2000,res=300)
-    h <- hist(pseq$fdr,breaks=100)
-    plot(h)
-    dev.off()
-  }else{
-    png(filename=paste(paste(comps[i,1],"_pval_hist.png",sep="")),width=2000,height=2000,res=300)
-    h <- hist(pseq$pval,breaks=100)
-    plot(h)
-    dev.off()
-  }
-  #get differentially expressed genes and save
-  if (stat=="q"){
-    mypros = pseq[pseq$fdr<qval,c(1:5,7)]
-  }else{
-    mypros = pseq[pseq$pval<qval,c(1:5,7)]
-  }
-  mypros = mypros[order(mypros$gname),]
-  myresults = data.frame(mypros,nozeros[row.names(nozeros)%in%mypros$gname,1:dim(mydata)[2]],pseqdata[row.names(pseqdata)%in%mypros$gname,])
-  #save
-  addWorksheet(wb = newwb, sheetName = mysheet, gridLines = TRUE)
-  writeDataTable(wb=newwb, sheet=mysheet,x=myresults,tableStyle="none",
-                 rowNames=TRUE,withFilter=FALSE,
-                 bandedRows=FALSE,bandedCols=FALSE)
-}
-
-#write workbook
-if (stat=="q"){
-  saveWorkbook(newwb, paste("Pseq_all_comps_q",qval,".xlsx",sep=""),overwrite=TRUE)
+  saveWorkbook(newwb2, "Pseq_all_comps.xlsx",overwrite=TRUE)
 }else{
-  saveWorkbook(newwb, paste("Pseq_all_comps_p",qval,".xlsx",sep=""),overwrite=TRUE)
+  #save expression values with annotation information
+  finalimpintensitiesIRS = finalimpintensitiesIRS[order(row.names(finalimpintensitiesIRS)),]
+  nozeros = nozeros[order(row.names(nozeros)),]
+  myresults = data.frame(nozeros[row.names(nozeros)%in%row.names(finalimpintensitiesIRS),1:dim(mydata)[2]],finalimpintensitiesIRS)
+  write.csv(myresults,'Normalized_values.csv')
 }
-saveWorkbook(newwb2, "Pseq_all_comps.xlsx",overwrite=TRUE)
+
 message("Finished!")
 }
