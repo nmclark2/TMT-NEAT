@@ -3,6 +3,11 @@ Tandem Mass Tag Normalization, Expression Analysis, and statistical Testing
 
 [![DOI](https://zenodo.org/badge/232925706.svg)](https://zenodo.org/badge/latestdoi/232925706)
 
+# Citing TMT-NEAT
+If using TMT-NEAT in your own work, please cite both this repository (using the DOI link above) and:
+
+Clark, N.M., Nolan, T.M., Wang, P. et al. Integrated omics networks reveal the temporal signaling events of brassinosteroid response in Arabidopsis. Nat Commun 12, 5858 (2021). https://doi.org/10.1038/s41467-021-26165-3
+
 # Install instructions
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
