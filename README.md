@@ -11,6 +11,8 @@ Clark, N.M., Nolan, T.M., Wang, P. et al. Integrated omics networks reveal the t
 # Install instructions
 Download all R code to your computer, then run the file "RUN_TMT.R" to start the RShiny app. Make sure to change your working directory to the folder that contains the code before running this file.
 
+A tutorial is provided in the TMT-NEAT_Tutorial.html file.
+
 # Known issues
 1) This method will automatically write over output files with the same name in your working directory. If you would like to compare your results, make sure to move them from your working directory or change your directory to prevent them being written over.
 2) Certain parameters were deprecated in version > 1.4 of the EnhancedVolcano package. If you are a new user of TMT-NEAT, or if you have updated the EnhancedVolcano package to version >1.4, please make sure to use Version 1.5.1 and beyond.
